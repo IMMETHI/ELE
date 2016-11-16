@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 CallLog.Calls.NUMBER
                 , CallLog.Calls.DURATION
         };
-        Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, projection, null, null, CallLog.Calls.NUMBER + " ASC");
+        Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, projection, null, null, null);
 
         while (managedCursor.moveToNext()) {
             long callDuration = Long.parseLong(managedCursor.getString(1));
@@ -78,10 +79,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void mergeDuplicateContact() throws CloneNotSupportedException {
+        Collections.sort(tempContactList, new Comparator<ContactModel>() {
+            @Override
+            public int compare(ContactModel o1, ContactModel o2) {
+                return o1.name.compareTo(o2.name);
+            }
+        });
         long totalTalkTime = 0;
         for (int i = 0; i < tempContactList.size(); i++) {
             totalTalkTime += tempContactList.get(i).totalTalkTime;
-            if (i < tempContactList.size() - 1 && !tempContactList.get(i).phoneNumber.equals(tempContactList.get(i + 1).phoneNumber)) {
+            String phNo = tempContactList.get(i).name;
+            String phNo1 = (i + 1) >= tempContactList.size() ? "-1" : tempContactList.get(i + 1).name;
+            if (!phNo.equals(phNo1)) {
                 ContactModel contactModel = (ContactModel) tempContactList.get(i).clone();
                 contactModel.totalTalkTime = totalTalkTime;
                 totalTalkTime = 0;
